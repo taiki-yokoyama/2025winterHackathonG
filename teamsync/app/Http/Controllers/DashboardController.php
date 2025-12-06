@@ -14,33 +14,42 @@ class DashboardController extends Controller
         // デモ用に最初のユーザーでログインしていると仮定
         $currentUser = User::first();
         
-        if (!$currentUser) {
+        if (!$currentUser || !$currentUser->team_id) {
             return view('dashboard', [
-                'radar_data' => [],
-                'distribution_data' => [],
+                'radarData' => [],
+                'distributionData' => [],
                 'questions' => [],
-                'team_members' => [],
+                'teamMembers' => [],
             ]);
         }
 
         $teamId = $currentUser->team_id;
         $weekNumber = 1;
 
-        // 同じチームのメンバー全員
-        $teamMembers = User::where('team_id', $teamId)->get();
+        // 同じチームのメンバー全員（Eager Loading）
+        $teamMembers = User::where('team_id', $teamId)
+            ->with(['answers' => function ($query) use ($weekNumber) {
+                $query->where('week_number', $weekNumber);
+            }])
+            ->get();
         
         // 質問一覧
         $questions = Question::all();
+
+        // 回答データを事前に取得してマップ化（N+1問題を回避）
+        $answersMap = [];
+        foreach ($teamMembers as $member) {
+            foreach ($member->answers as $answer) {
+                $answersMap[$member->id][$answer->question_id] = $answer;
+            }
+        }
 
         // レーダーチャート用データ
         $radarData = [];
         foreach ($teamMembers as $member) {
             $scores = [];
             foreach ($questions as $question) {
-                $answer = Answer::where('user_id', $member->id)
-                    ->where('question_id', $question->id)
-                    ->where('week_number', $weekNumber)
-                    ->first();
+                $answer = $answersMap[$member->id][$question->id] ?? null;
                 $scores[] = $answer ? $answer->score : 0;
             }
             $radarData[] = [
@@ -59,10 +68,7 @@ class DashboardController extends Controller
             }
             
             foreach ($teamMembers as $member) {
-                $answer = Answer::where('user_id', $member->id)
-                    ->where('question_id', $question->id)
-                    ->where('week_number', $weekNumber)
-                    ->first();
+                $answer = $answersMap[$member->id][$question->id] ?? null;
                 
                 if ($answer) {
                     $distribution[$answer->score][] = [
