@@ -4,122 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新規登録 - TeamSync</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white h-screen overflow-hidden">
-    <div class="flex w-full h-full">
-        <!-- Left Column -->
-        <div class="flex flex-col flex-1 p-8 bg-white overflow-y-auto">
-            <!-- Logo -->
-            <div class="mb-4">
-                <img src="{{ asset('img/logo-retune.jpg') }}" alt="Retune" class="w-[232px] h-[66px] object-contain">
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800">TeamSync</h1>
+                <p class="text-gray-600 mt-2">新規登録</p>
             </div>
 
-            <!-- Content -->
-            <div class="flex-1 flex flex-col justify-center px-16 max-w-[527px] mx-auto w-full">
-                <!-- Title -->
-                <h1 class="text-[40px] font-bold text-[#232323] leading-[110%] tracking-[-0.04em] mb-6">新規登録</h1>
+            @if($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                <ul>
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
-                <!-- Form -->
-                <form method="POST" action="{{ route('register') }}" class="flex flex-col gap-4">
-                    @csrf
+            <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
+                @csrf
 
-                    <!-- ニックネーム -->
-                    <div class="relative">
-                        <input 
-                            type="text" 
-                            name="name" 
-                            value="{{ old('name') }}"
-                            class="w-full h-[59px] px-4 text-lg border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none @error('name') border-red-500 @enderror"
-                        >
-                        <label class="absolute -top-[10.5px] left-3 px-1 bg-white text-sm font-medium text-[#9A9A9A]">
-                            ニックネーム
-                        </label>
-                        @error('name')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- チーム番号 -->
-                    <div class="relative">
-                        <input 
-                            type="text" 
-                            name="team_code" 
-                            value="{{ old('team_code') }}"
-                            class="w-full h-[59px] px-4 text-lg border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none @error('team_code') border-red-500 @enderror"
-                        >
-                        <label class="absolute -top-[10.5px] left-3 px-1 bg-white text-sm font-medium text-[#9A9A9A]">
-                            チーム番号
-                        </label>
-                        @error('team_code')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- メールアドレス -->
-                    <div class="relative">
-                        <input 
-                            type="email" 
-                            name="email" 
-                            value="{{ old('email') }}"
-                            class="w-full h-[59px] px-4 text-lg border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none @error('email') border-red-500 @enderror"
-                        >
-                        <label class="absolute -top-[10.5px] left-3 px-1 bg-white text-sm font-medium text-[#9A9A9A]">
-                            メールアドレス
-                        </label>
-                        @error('email')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- パスワード -->
-                    <div class="relative">
-                        <input 
-                            type="password" 
-                            name="password" 
-                            class="w-full h-[59px] px-4 text-lg border border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none @error('password') border-red-500 @enderror"
-                        >
-                        <label class="absolute -top-[10.5px] left-3 px-1 bg-white text-sm font-medium text-[#9A9A9A]">
-                            パスワード
-                        </label>
-                        @error('password')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- パスワード確認 -->
-                    <div class="relative">
-                        <input 
-                            type="password" 
-                            name="password_confirmation" 
-                            class="w-full h-[59px] px-4 text-lg border border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none"
-                        >
-                        <label class="absolute -top-[10.5px] left-3 px-1 bg-white text-sm font-medium text-[#9A9A9A]">
-                            パスワード（確認）
-                        </label>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit"
-                        class="w-full h-[54px] bg-gradient-to-r from-[#8060FF] to-[#30E0C0] rounded-[10px] text-white font-semibold text-lg hover:opacity-90 transition"
+                <!-- 名前 -->
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        名前
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="name"
+                        value="{{ old('name') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                        autofocus
                     >
-                        登録
-                    </button>
-                </form>
+                </div>
 
-                <!-- Login Link -->
-                <p class="text-center text-[#6C6C6C] text-lg mt-8">
-                    すでにアカウントをお持ちですか? 
-                    <a href="{{ route('login') }}" class="text-[#8060FF] hover:underline">ログインはこちら</a>
-                </p>
-            </div>
-        </div>
+                <!-- メールアドレス -->
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        メールアドレス
+                    </label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email"
+                        value="{{ old('email') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    >
+                </div>
 
-        <!-- Right Column -->
-        <div class="flex-1 p-3 bg-white">
-            <img src="{{ asset('img/retune-img.jpg') }}" alt="Background" class="w-full h-full object-cover rounded-[24px]">
+                <!-- チームID -->
+                <div class="mb-4">
+                    <label for="team_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        チームを選択
+                    </label>
+                    <select 
+                        name="team_id" 
+                        id="team_id"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    >
+                        <option value="">チームを選択してください</option>
+                        @foreach(\App\Models\Team::all() as $team)
+                        <option value="{{ $team->id }}" {{ old('team_id') == $team->id ? 'selected' : '' }}>
+                            {{ $team->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- アイコン画像 -->
+                <div class="mb-4">
+                    <label for="icon" class="block text-sm font-medium text-gray-700 mb-2">
+                        アイコン画像
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div id="preview" class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                            <span class="text-gray-400 text-sm">プレビュー</span>
+                        </div>
+                        <div class="flex-1">
+                            <input 
+                                type="file" 
+                                name="icon" 
+                                id="icon"
+                                accept="image/*"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="previewImage(event)"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">JPG, PNG, GIF形式の画像をアップロードしてください</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- パスワード -->
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        パスワード
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    >
+                </div>
+
+                <!-- パスワード確認 -->
+                <div class="mb-6">
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                        パスワード（確認）
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password_confirmation" 
+                        id="password_confirmation"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    >
+                </div>
+
+                <!-- 登録ボタン -->
+                <button 
+                    type="submit"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition"
+                >
+                    登録
+                </button>
+            </form>
+
+            <!-- ログインリンク -->
+            <p class="text-center text-gray-600 mt-6">
+                すでにアカウントをお持ちですか？ 
+                <a href="{{ route('login') }}" class="text-blue-500 hover:underline">ログイン</a>
+            </p>
         </div>
     </div>
+
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" alt="プレビュー">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </body>
 </html>
