@@ -7,20 +7,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 overflow-hidden">
     <!-- ヘッダー -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-800">TeamSync</h1>
-            @if(count($teamMembers) > 0)
-            <button onclick="openModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
-                アンケートに答える
-            </button>
-            @endif
+            <div>
+                @if(count($teamMembers) > 0)
+                <button onclick="openModal()" id="surveyButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                    アンケートに答える
+                </button>
+                <button onclick="toggleForm()" id="showFormBtnHeader" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition hidden">
+                    新しい改善案を入力
+                </button>
+                @endif
+            </div>
         </div>
     </header>
 
-    <div class="container mx-auto px-4 py-8">
+    <!-- スライダーコンテナ -->
+    <div class="relative h-[calc(100vh-80px)] overflow-hidden">
+        <!-- ダッシュボード画面 -->
+        <div id="dashboardView" class="absolute inset-0 transition-transform duration-500 ease-in-out transform translate-x-0 overflow-y-auto">
+            <!-- 右矢印ボタン -->
+            <button onclick="switchView('improvement')" class="fixed right-4 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg z-10 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+            <div class="container mx-auto px-4 py-8">
         @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {{ session('success') }}
@@ -75,6 +90,24 @@
         <!-- レーダーチャート -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 class="text-2xl font-semibold mb-4">チームメンバーのスコア比較</h2>
+            
+            @if(isset($maxVarianceIndex) && $maxVarianceIndex !== null && isset($questions[$maxVarianceIndex]))
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-semibold text-red-800">認識のズレが最も大きい項目</p>
+                        <p class="text-red-700 text-sm mt-1">
+                            「<span class="font-bold">{{ $questions[$maxVarianceIndex]->content }}</span>」
+                            （標準偏差: {{ number_format($questionVariances[$maxVarianceIndex], 2) }}）
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endif
+            
             <div class="max-w-2xl mx-auto">
                 <canvas id="radarChart"></canvas>
             </div>
@@ -128,6 +161,142 @@
                 </div>
             </div>
             @endforeach
+        </div>
+    </div>
+            </div>
+        </div>
+
+        <!-- 改善案入力画面 -->
+        <div id="improvementView" class="absolute inset-0 transition-transform duration-500 ease-in-out transform translate-x-full overflow-y-auto">
+            <!-- 左矢印ボタン -->
+            <button onclick="switchView('dashboard')" class="fixed left-4 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg z-10 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            
+            <div class="container mx-auto px-4 pt-20 pb-8">
+                <!-- 改善案入力フォーム -->
+                <div class="bg-white rounded-lg shadow-md p-8 max-w-4xl mx-auto mb-8" id="improvementForm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">第{{ $currentWeek }}週の改善案を入力</h2>
+                        <button type="button" onclick="toggleForm()" id="toggleFormBtn" class="text-blue-500 hover:text-blue-600 font-semibold">
+                            閉じる
+                        </button>
+                    </div>
+                    
+                    <form action="{{ route('improvement.store') }}" method="POST" class="space-y-6" id="improvementFormContent">
+                        @csrf
+                        <input type="hidden" name="team_id" value="{{ auth()->user()->team_id }}">
+                        <input type="hidden" name="week_number" value="{{ $currentWeek }}">
+
+                        <!-- 問題点 -->
+                        <div>
+                            <label class="block text-lg font-semibold text-gray-700 mb-2">
+                                問題点
+                            </label>
+                            <textarea 
+                                name="problem" 
+                                rows="3" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="チームが抱えている問題点を記入してください">{{ $improvement->problem ?? '' }}</textarea>
+                        </div>
+
+                        <!-- 原因 -->
+                        <div>
+                            <label class="block text-lg font-semibold text-gray-700 mb-2">
+                                原因
+                            </label>
+                            <textarea 
+                                name="cause" 
+                                rows="3" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="問題の原因を分析して記入してください">{{ $improvement->cause ?? '' }}</textarea>
+                        </div>
+
+                        <!-- 改善方策 -->
+                        <div>
+                            <label class="block text-lg font-semibold text-gray-700 mb-2">
+                                改善方策
+                            </label>
+                            <textarea 
+                                name="solution" 
+                                rows="3" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="具体的な改善方策を記入してください">{{ $improvement->solution ?? '' }}</textarea>
+                        </div>
+
+                        <!-- ToDo -->
+                        <div>
+                            <label class="block text-lg font-semibold text-gray-700 mb-2">
+                                ToDo
+                            </label>
+                            <textarea 
+                                name="todo" 
+                                rows="3" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="実行すべきタスクを記入してください">{{ $improvement->todo ?? '' }}</textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button 
+                                type="submit" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition">
+                                保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 改善案カード一覧 -->
+                <div class="max-w-6xl mx-auto mt-8">
+                    
+                    @if($improvements->count() > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($improvements as $item)
+                        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-bold text-blue-600">第{{ $item->week_number }}週</h3>
+                                <span class="text-sm text-gray-500">{{ $item->created_at->format('Y/m/d') }}</span>
+                            </div>
+                            
+                            @if($item->problem)
+                            <div class="mb-3">
+                                <h4 class="font-semibold text-gray-700 text-sm mb-1">問題点</h4>
+                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->problem }}</p>
+                            </div>
+                            @endif
+                            
+                            @if($item->cause)
+                            <div class="mb-3">
+                                <h4 class="font-semibold text-gray-700 text-sm mb-1">原因</h4>
+                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->cause }}</p>
+                            </div>
+                            @endif
+                            
+                            @if($item->solution)
+                            <div class="mb-3">
+                                <h4 class="font-semibold text-gray-700 text-sm mb-1">改善方策</h4>
+                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->solution }}</p>
+                            </div>
+                            @endif
+                            
+                            @if($item->todo)
+                            <div>
+                                <h4 class="font-semibold text-gray-700 text-sm mb-1">ToDo</h4>
+                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->todo }}</p>
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="text-center py-12 bg-white rounded-lg shadow-md">
+                        <p class="text-gray-500 text-lg">まだ改善案が保存されていません</p>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
@@ -187,6 +356,74 @@
     @endif
 
     <script>
+        // スライダー切り替え
+        function switchView(view) {
+            const dashboardView = document.getElementById('dashboardView');
+            const improvementView = document.getElementById('improvementView');
+            const surveyButton = document.getElementById('surveyButton');
+            const showFormBtnHeader = document.getElementById('showFormBtnHeader');
+
+            if (view === 'dashboard') {
+                dashboardView.classList.remove('translate-x-[-100%]');
+                dashboardView.classList.add('translate-x-0');
+                improvementView.classList.remove('translate-x-0');
+                improvementView.classList.add('translate-x-full');
+                if (surveyButton) surveyButton.classList.remove('hidden');
+                if (showFormBtnHeader) showFormBtnHeader.classList.add('hidden');
+            } else {
+                dashboardView.classList.remove('translate-x-0');
+                dashboardView.classList.add('translate-x-[-100%]');
+                improvementView.classList.remove('translate-x-full');
+                improvementView.classList.add('translate-x-0');
+                if (surveyButton) surveyButton.classList.add('hidden');
+                if (showFormBtnHeader) showFormBtnHeader.classList.remove('hidden');
+            }
+        }
+
+        // フォームの表示/非表示切り替え
+        function toggleForm() {
+            const formContent = document.getElementById('improvementFormContent');
+            const toggleBtn = document.getElementById('toggleFormBtn');
+            const showFormBtnHeader = document.getElementById('showFormBtnHeader');
+            const formContainer = document.getElementById('improvementForm');
+
+            if (formContent.style.display === 'none') {
+                formContent.style.display = 'block';
+                toggleBtn.textContent = '閉じる';
+                if (showFormBtnHeader) showFormBtnHeader.classList.add('hidden');
+                formContainer.classList.remove('hidden');
+            } else {
+                formContent.style.display = 'none';
+                toggleBtn.textContent = '開く';
+                if (showFormBtnHeader) showFormBtnHeader.classList.remove('hidden');
+                formContainer.classList.add('hidden');
+            }
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            // URLパラメータをチェック
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+            
+            // view=improvementの場合、改善案ページを表示
+            if (view === 'improvement') {
+                switchView('improvement');
+                // フォームを閉じる
+                const formContent = document.getElementById('improvementFormContent');
+                const toggleBtn = document.getElementById('toggleFormBtn');
+                const showFormBtnHeader = document.getElementById('showFormBtnHeader');
+                const formContainer = document.getElementById('improvementForm');
+                const surveyButton = document.getElementById('surveyButton');
+                
+                formContent.style.display = 'none';
+                toggleBtn.textContent = '開く';
+                if (showFormBtnHeader) showFormBtnHeader.classList.remove('hidden');
+                formContainer.classList.add('hidden');
+                if (surveyButton) surveyButton.classList.add('hidden');
+            }
+        });
+
         // モーダル制御
         function openModal() {
             document.getElementById('surveyModal').classList.remove('hidden');
@@ -288,6 +525,8 @@
                 pointHoverBorderWidth: 2
             }));
 
+            const maxVarianceIndex = {{ $maxVarianceIndex ?? 'null' }};
+
             const ctx = document.getElementById('radarChart').getContext('2d');
             new Chart(ctx, {
                 type: 'radar',
@@ -320,10 +559,14 @@
                                 lineWidth: 1
                             },
                             pointLabels: {
-                                color: '#333',
-                                font: {
-                                    size: 13,
-                                    weight: '500'
+                                color: function(context) {
+                                    return context.index === maxVarianceIndex ? '#dc2626' : '#333';
+                                },
+                                font: function(context) {
+                                    return {
+                                        size: 13,
+                                        weight: context.index === maxVarianceIndex ? 'bold' : '500'
+                                    };
                                 },
                                 padding: 10
                             }

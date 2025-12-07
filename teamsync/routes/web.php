@@ -17,5 +17,6 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/answer', [AnswerController::class, 'store'])->name('answer.store');
+    Route::post('/improvement', [\App\Http\Controllers\ImprovementController::class, 'store'])->name('improvement.store');
 });
 
