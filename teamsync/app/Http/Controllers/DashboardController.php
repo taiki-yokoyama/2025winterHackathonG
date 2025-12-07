@@ -18,10 +18,11 @@ class DashboardController extends Controller
             return view('dashboard', [
                 'radarData' => [],
                 'distributionData' => [],
-                'questions' => [],
+                'questions' => collect([]),
                 'teamMembers' => [],
                 'currentWeek' => 1,
                 'availableWeeks' => [],
+                'sortMode' => 'default',
             ]);
         }
 
@@ -69,13 +70,16 @@ class DashboardController extends Controller
         $radarData = [];
         foreach ($teamMembers as $index => $member) {
             $scores = [];
+            $comments = [];
             foreach ($questions as $question) {
                 $answer = $answersMap[$member->id][$question->id] ?? null;
                 $scores[] = $answer ? $answer->score : 0;
+                $comments[] = $answer ? $answer->comment : '';
             }
             $radarData[] = [
                 'label' => $member->name,
                 'data' => $scores,
+                'comments' => $comments,
                 'icon' => $member->icon_path,
                 'color' => $memberColors[$member->id],
             ];
