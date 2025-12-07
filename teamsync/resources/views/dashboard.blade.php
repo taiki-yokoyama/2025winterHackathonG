@@ -3,224 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeamSync - ダッシュボード</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ダッシュボード - TeamSync</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-white h-screen overflow-hidden flex flex-col">
     <!-- ヘッダー -->
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-800">TeamSync</h1>
-            @if(count($teamMembers) > 0)
-            <button onclick="openModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
-                アンケートに答える
-            </button>
-            @endif
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <img src="{{ asset('img/logo-retune.jpg') }}" alt="Retune" class="h-12 object-contain">
+            <h1 class="text-2xl font-bold text-[#232323]">ダッシュボード</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[#6C6C6C]">{{ auth()->user()->name }}</span>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="px-4 py-2 text-[#6C6C6C] hover:text-[#232323] transition">
+                    ログアウト
+                </button>
+            </form>
         </div>
     </header>
 
-    <div class="container mx-auto px-4 py-8">
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
-        @endif
+    <!-- メインコンテンツ -->
+    <div class="flex-1 overflow-y-auto">
+        <div class="max-w-7xl mx-auto px-8 py-6">
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-[10px] mb-6">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-        <!-- 週選択 -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">週の選択</h2>
-                <div class="flex items-center gap-4">
-                    @if(count($availableWeeks) > 0)
-                        <a href="?week={{ max(1, $currentWeek - 1) }}" 
-                           class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition {{ $currentWeek <= 1 ? 'opacity-50 pointer-events-none' : '' }}">
-                            ← 前の週
-                        </a>
-                        
+            @if(count($teamMembers) > 0)
+                <!-- 週選択とアンケートボタン -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        @foreach(range(1, max($availableWeeks ?: [1])) as $week)
+                            <a href="?week={{ $week }}" 
+                               class="px-4 py-2 rounded-[10px] transition {{ $week == $currentWeek ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white' : 'bg-gray-100 text-[#6C6C6C] hover:bg-gray-200' }}">
+                                第{{ $week }}週
+                            </a>
+                        @endforeach
+                    </div>
+                    <button onclick="openModal()" class="px-6 py-3 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold rounded-[10px] hover:opacity-90 transition">
+                        アンケートに答える
+                    </button>
+                </div>
+
+                <!-- レーダーチャート -->
+                <div class="bg-white border border-gray-200 rounded-[10px] p-6 mb-6">
+                    <h2 class="text-xl font-bold text-[#232323] mb-4">チーム状況（レーダーチャート）</h2>
+                    <div class="flex justify-center">
+                        <canvas id="radarChart" width="400" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- 分布図 -->
+                <div class="bg-white border border-gray-200 rounded-[10px] p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-[#232323]">質問別の回答分布</h2>
                         <div class="flex gap-2">
-                            @foreach(range(1, max($availableWeeks ?: [1])) as $week)
-                                <a href="?week={{ $week }}" 
-                                   class="px-4 py-2 rounded-lg transition {{ $week == $currentWeek ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
-                                    第{{ $week }}週
-                                </a>
-                            @endforeach
-                            @if(max($availableWeeks ?: [1]) < 10)
-                                @foreach(range(max($availableWeeks ?: [1]) + 1, 10) as $week)
-                                    <a href="?week={{ $week }}" 
-                                       class="px-4 py-2 rounded-lg transition {{ $week == $currentWeek ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-400' }}">
-                                        第{{ $week }}週
-                                    </a>
-                                @endforeach
-                            @endif
-                        </div>
-                        
-                        <a href="?week={{ $currentWeek + 1 }}" 
-                           class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
-                            次の週 →
-                        </a>
-                    @else
-                        <p class="text-gray-500">まだアンケートの回答がありません</p>
-                    @endif
-                </div>
-            </div>
-            <div class="mt-4 text-center">
-                <span class="text-2xl font-bold text-blue-600">第{{ $currentWeek }}週</span>
-                @if(in_array($currentWeek, $availableWeeks))
-                    <span class="ml-2 text-sm text-green-600">✓ 回答済み</span>
-                @else
-                    <span class="ml-2 text-sm text-gray-400">未回答</span>
-                @endif
-            </div>
-        </div>
-
-        <!-- レーダーチャート -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-2xl font-semibold mb-4">チームメンバーのスコア比較</h2>
-            <div class="max-w-2xl mx-auto">
-                <canvas id="radarChart"></canvas>
-            </div>
-        </div>
-
-        <!-- 分布図 -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">質問別スコア分布</h2>
-                <div class="flex gap-2">
-                    <a href="?week={{ $currentWeek }}&sort=default" 
-                       class="px-4 py-2 rounded-lg transition {{ $sortMode === 'default' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
-                        デフォルト順
-                    </a>
-                    <a href="?week={{ $currentWeek }}&sort=variance" 
-                       class="px-4 py-2 rounded-lg transition {{ $sortMode === 'variance' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
-                        ばらつき順
-                    </a>
-                </div>
-            </div>
-            @foreach($distributionData as $index => $data)
-                <div class="mb-8">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-lg font-medium">{{ $data['question'] }}</h3>
-                        <div class="text-sm text-gray-600">
-                            <span class="mr-4">平均: <span class="font-semibold">{{ number_format($data['mean'], 2) }}</span></span>
-                            <span>標準偏差: <span class="font-semibold {{ $data['stdDev'] > 1.5 ? 'text-red-600' : ($data['stdDev'] > 1.0 ? 'text-orange-600' : 'text-green-600') }}">{{ number_format($data['stdDev'], 2) }}</span></span>
+                            <a href="?week={{ $currentWeek }}&sort=default" 
+                               class="px-4 py-2 rounded-[10px] transition {{ $sortMode == 'default' ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white' : 'bg-gray-100 text-[#6C6C6C] hover:bg-gray-200' }}">
+                                デフォルト
+                            </a>
+                            <a href="?week={{ $currentWeek }}&sort=variance" 
+                               class="px-4 py-2 rounded-[10px] transition {{ $sortMode == 'variance' ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white' : 'bg-gray-100 text-[#6C6C6C] hover:bg-gray-200' }}">
+                                ばらつき順
+                            </a>
                         </div>
                     </div>
-                    <div class="flex justify-between items-end h-64 border-b border-gray-300">
-                        @for($score = 1; $score <= 5; $score++)
-                            <div class="flex-1 flex flex-col items-center justify-end px-2">
-                                <div class="flex flex-wrap justify-center gap-2 mb-2">
-                                    @foreach($data['distribution'][$score] as $user)
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold" 
-                                             style="background-color: {{ $user['color'] }};"
-                                             title="{{ $user['name'] }}: {{ $user['comment'] ?? 'コメントなし' }}">
-                                            {{ substr($user['name'], 0, 1) }}
+
+                    @foreach($distributionData as $data)
+                        <div class="mb-6 pb-6 border-b border-gray-200 last:border-b-0">
+                            <h3 class="font-semibold text-[#232323] mb-3">{{ $data['question'] }}</h3>
+                            <div class="flex gap-2">
+                                @for($score = 1; $score <= 5; $score++)
+                                    <div class="flex-1">
+                                        <div class="text-center text-sm text-[#6C6C6C] mb-2">{{ $score }}</div>
+                                        <div class="min-h-[100px] bg-gray-50 rounded-[10px] p-2 flex flex-col gap-2">
+                                            @foreach($data['distribution'][$score] as $user)
+                                                <div class="bg-white border border-gray-200 rounded-[10px] p-2 text-sm">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="text-lg">{{ $user['icon'] }}</span>
+                                                        <span class="font-medium text-[#232323]">{{ $user['name'] }}</span>
+                                                    </div>
+                                                    @if($user['comment'])
+                                                        <p class="text-[#6C6C6C] text-xs">{{ $user['comment'] }}</p>
+                                                    @endif
+                                                </div>
+                                            @endforeach
                                         </div>
-                                    @endforeach
-                                </div>
-                                <div class="text-center font-semibold">{{ $score }}</div>
+                                    </div>
+                                @endfor
                             </div>
-                        @endfor
-                    </div>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
+            @else
+                <div class="text-center py-12">
+                    <p class="text-[#6C6C6C] text-lg">チームメンバーがいません</p>
+                </div>
+            @endif
         </div>
     </div>
 
     <!-- アンケートモーダル -->
-    @if(count($teamMembers) > 0)
-    <div id="surveyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-                <h2 class="text-2xl font-semibold">今週のアンケート</h2>
-                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-[10px] p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-[#232323]">アンケート</h2>
+                <button onclick="closeModal()" class="text-[#6C6C6C] hover:text-[#232323] text-2xl">&times;</button>
             </div>
-            
-            <form action="{{ route('answer.store') }}" method="POST" class="p-6 space-y-6">
-                @csrf
-                <input type="hidden" name="week_number" value="{{ $currentWeek }}">
-                
-                <!-- ユーザー選択 -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">回答者</label>
-                    <select name="user_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        @foreach($teamMembers as $member)
-                            <option value="{{ $member->id }}">{{ $member->icon_path }} {{ $member->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
 
-                <!-- 質問ごとの回答 -->
+            <form method="POST" action="{{ route('answer.store') }}">
+                @csrf
+                <input type="hidden" name="user_id" value="{{ auth()->user()->id }}">
+                <input type="hidden" name="week_number" value="{{ $currentWeek }}">
+
                 @foreach($questions as $question)
-                    <div class="border-t pt-4">
-                        <label class="block text-sm font-medium mb-3">{{ $question->content }}</label>
+                    <div class="mb-6">
+                        <label class="block text-[#232323] font-medium mb-3">{{ $question->content }}</label>
                         
                         <!-- スコア選択 -->
-                        <div class="flex gap-4 mb-3">
-                            @for($i = 1; $i <= 5; $i++)
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="score_{{ $question->id }}" value="{{ $i }}" required 
-                                           class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-lg">{{ $i }}</span>
+                        <div class="flex gap-2 mb-3">
+                            @for($score = 1; $score <= 5; $score++)
+                                <label class="flex-1">
+                                    <input type="radio" name="answers[{{ $question->id }}][score]" value="{{ $score }}" class="hidden peer" required>
+                                    <div class="text-center py-3 border-2 border-gray-200 rounded-[10px] cursor-pointer peer-checked:border-[#8060FF] peer-checked:bg-gradient-to-r peer-checked:from-[#8060FF] peer-checked:to-[#30E0C0] peer-checked:text-white transition">
+                                        {{ $score }}
+                                    </div>
                                 </label>
                             @endfor
                         </div>
-                        
-                        <!-- コメント入力 -->
-                        <textarea name="comment_{{ $question->id }}" required 
-                                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                                  rows="2" placeholder="コメントを入力してください"></textarea>
+
+                        <!-- コメント -->
+                        <textarea 
+                            name="answers[{{ $question->id }}][comment]" 
+                            class="w-full px-4 py-3 border border-gray-200 rounded-[10px] focus:border-[#8060FF] focus:outline-none resize-none"
+                            rows="3"
+                            placeholder="コメントを入力してください"
+                            required
+                        ></textarea>
                     </div>
                 @endforeach
 
-                <div class="flex gap-3 pt-4">
-                    <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition">
-                        回答を送信
-                    </button>
-                    <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                        キャンセル
-                    </button>
-                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold rounded-[10px] hover:opacity-90 transition">
+                    送信
+                </button>
             </form>
         </div>
     </div>
-    @endif
 
     <script>
-        // モーダル制御
         function openModal() {
-            document.getElementById('surveyModal').classList.remove('hidden');
-            document.getElementById('surveyModal').classList.add('flex');
+            document.getElementById('modal').classList.remove('hidden');
         }
 
         function closeModal() {
-            document.getElementById('surveyModal').classList.add('hidden');
-            document.getElementById('surveyModal').classList.remove('flex');
+            document.getElementById('modal').classList.add('hidden');
         }
 
-        // モーダル外クリックで閉じる
-        document.getElementById('surveyModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
+        // レーダーチャート
+        @if(count($teamMembers) > 0)
+        const radarData = {
+            labels: {!! json_encode(array_map(fn($q) => $q->content, $questions->toArray())) !!},
+            datasets: {!! json_encode(array_map(function($data) {
+                return [
+                    'label' => $data['label'],
+                    'data' => $data['data'],
+                    'borderColor' => $data['color'],
+                    'backgroundColor' => $data['color'] . '33',
+                ];
+            }, $radarData)) !!}
+        };
 
-        // レーダーチャートの設定
-        const radarData = @json($radarData);
-        const questions = @json($questions);
-        
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        const radarChart = new Chart(ctx, {
+        new Chart(document.getElementById('radarChart'), {
             type: 'radar',
-            data: {
-                labels: questions.map(q => q.content),
-                datasets: radarData.map((member) => ({
-                    label: member.label,
-                    data: member.data,
-                    borderColor: member.color,
-                    backgroundColor: member.color.replace('hsl', 'hsla').replace(')', ', 0.2)'),
-                }))
-            },
+            data: radarData,
             options: {
                 scales: {
                     r: {
@@ -238,6 +198,7 @@
                 }
             }
         });
+        @endif
     </script>
 </body>
 </html>
