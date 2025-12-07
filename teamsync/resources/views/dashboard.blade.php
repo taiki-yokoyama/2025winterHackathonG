@@ -11,13 +11,13 @@
     <!-- ヘッダー -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-800">TeamSync</h1>
+            <img src="{{ asset('img/logo-retune.jpg') }}" alt="Retune" class="w-[232px] h-[66px] object-contain">
             <div>
                 @if(count($teamMembers) > 0)
-                <button onclick="openModal()" id="surveyButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                <button onclick="openModal()" id="surveyButton" class="bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold py-2 px-6 rounded-[10px] transition">
                     アンケートに答える
                 </button>
-                <button onclick="toggleForm()" id="showFormBtnHeader" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition hidden">
+                <button onclick="toggleForm()" id="showFormBtnHeader" class="bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold py-2 px-6 rounded-[10px] transition hidden">
                     新しい改善案を入力
                 </button>
                 @endif
@@ -30,7 +30,7 @@
         <!-- ダッシュボード画面 -->
         <div id="dashboardView" class="absolute inset-0 transition-transform duration-500 ease-in-out transform translate-x-0 overflow-y-auto">
             <!-- 右矢印ボタン -->
-            <button onclick="switchView('improvement')" class="fixed right-4 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg z-10 transition">
+            <button onclick="switchView('improvement')" class="fixed right-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white p-4 rounded-full shadow-lg z-10 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
@@ -43,33 +43,33 @@
         @endif
 
         <!-- 週選択 -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="bg-white rounded-[10px] shadow-lg p-6 mb-8">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold">週の選択</h2>
                 <div class="flex items-center gap-4">
                     @if(count($availableWeeks) > 0)
                     <a href="?week={{ max(1, $currentWeek - 1) }}" 
-                       class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition {{ $currentWeek <= 1 ? 'opacity-50 pointer-events-none' : '' }}">
+                       class="px-4 py-2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold rounded-[10px] transition {{ $currentWeek <= 1 ? 'opacity-50 pointer-events-none' : '' }}">
                         ← 前の週
                     </a>
                     <div class="flex gap-2">
                         @foreach(range(1, max($availableWeeks ?: [1])) as $week)
                         <a href="?week={{ $week }}" 
-                           class="px-4 py-2 rounded-lg transition {{ $week == $currentWeek ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
+                           class="px-4 py-2 rounded-[10px] transition {{ $week == $currentWeek ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold' : 'bg-gray-100 hover:bg-gray-200 text-[#6C6C6C]' }}">
                             第{{ $week }}週
                         </a>
                         @endforeach
                         @if(max($availableWeeks ?: [1]) < 10)
                         @foreach(range(max($availableWeeks ?: [1]) + 1, 10) as $week)
                         <a href="?week={{ $week }}" 
-                           class="px-4 py-2 rounded-lg transition {{ $week == $currentWeek ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-400' }}">
+                           class="px-4 py-2 rounded-[10px] transition {{ $week == $currentWeek ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold' : 'bg-gray-50 hover:bg-gray-100 text-gray-400' }}">
                             第{{ $week }}週
                         </a>
                         @endforeach
                         @endif
                     </div>
                     <a href="?week={{ $currentWeek + 1 }}" 
-                       class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                       class="px-4 py-2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold rounded-[10px] transition">
                         次の週 →
                     </a>
                     @else
@@ -78,7 +78,7 @@
                 </div>
             </div>
             <div class="mt-4 text-center">
-                <span class="text-2xl font-bold text-blue-600">第{{ $currentWeek }}週</span>
+                <span class="text-2xl font-bold bg-gradient-to-r from-[#8060FF] to-[#30E0C0] bg-clip-text text-transparent">第{{ $currentWeek }}週</span>
                 @if(in_array($currentWeek, $availableWeeks))
                 <span class="ml-2 text-sm text-green-600">✓ 回答済み</span>
                 @else
@@ -87,214 +87,238 @@
             </div>
         </div>
 
-        <!-- レーダーチャート -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 class="text-2xl font-semibold mb-4">チームメンバーのスコア比較</h2>
-            
-            @if(isset($maxVarianceIndex) && $maxVarianceIndex !== null && isset($questions[$maxVarianceIndex]))
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    <div>
-                        <p class="font-semibold text-red-800">認識のズレが最も大きい項目</p>
-                        <p class="text-red-700 text-sm mt-1">
-                            「<span class="font-bold">{{ $questions[$maxVarianceIndex]->content }}</span>」
-                            （標準偏差: {{ number_format($questionVariances[$maxVarianceIndex], 2) }}）
-                        </p>
-                    </div>
+        <!-- アラート（認識のズレ） -->
+        @if(isset($maxVarianceIndex) && $maxVarianceIndex !== null && isset($questions[$maxVarianceIndex]))
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded-[10px]">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <p class="font-semibold text-red-800">認識のズレが最も大きい項目</p>
+                    <p class="text-red-700 text-sm mt-1">
+                        「<span class="font-bold">{{ $questions[$maxVarianceIndex]->content }}</span>」
+                        （標準偏差: {{ number_format($questionVariances[$maxVarianceIndex], 2) }}）
+                    </p>
                 </div>
-            </div>
-            @endif
-            
-            <div class="max-w-2xl mx-auto">
-                <canvas id="radarChart"></canvas>
             </div>
         </div>
+        @endif
 
-        <!-- 分布図 -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">質問別スコア分布</h2>
-                <div class="flex gap-2">
-                    <a href="?week={{ $currentWeek }}&sort=default" 
-                       class="px-4 py-2 rounded-lg transition {{ $sortMode === 'default' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
-                        デフォルト順
-                    </a>
-                    <a href="?week={{ $currentWeek }}&sort=variance" 
-                       class="px-4 py-2 rounded-lg transition {{ $sortMode === 'variance' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' }}">
-                        ばらつき順
-                    </a>
+        <!-- レーダーチャートと分布図を横並び -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- レーダーチャート -->
+            <div class="bg-white rounded-[10px] shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">チームメンバーのスコア比較</h2>
+                <div class="w-full">
+                    <canvas id="radarChart"></canvas>
                 </div>
             </div>
 
-            @foreach($distributionData as $index => $data)
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-medium">{{ $data['question'] }}</h3>
-                    <div class="text-sm text-gray-600">
-                        <span class="mr-4">平均: <span class="font-semibold">{{ number_format($data['mean'], 2) }}</span></span>
-                        <span>標準偏差: <span class="font-semibold {{ $data['stdDev'] > 1.5 ? 'text-red-600' : ($data['stdDev'] > 1.0 ? 'text-orange-600' : 'text-green-600') }}">{{ number_format($data['stdDev'], 2) }}</span></span>
+            <!-- 分布図 -->
+            <div class="bg-white rounded-[10px] shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">質問別スコア分布</h2>
+                    <div class="flex gap-2">
+                        <a href="?week={{ $currentWeek }}&sort=default" 
+                           class="px-4 py-2 rounded-[10px] transition {{ $sortMode === 'default' ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold' : 'bg-gray-100 hover:bg-gray-200 text-[#6C6C6C]' }}">
+                            デフォルト順
+                        </a>
+                        <a href="?week={{ $currentWeek }}&sort=variance" 
+                           class="px-4 py-2 rounded-[10px] transition {{ $sortMode === 'variance' ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold' : 'bg-gray-100 hover:bg-gray-200 text-[#6C6C6C]' }}">
+                            ばらつき順
+                        </a>
                     </div>
                 </div>
-                <div class="flex justify-between items-end h-64 border-b border-gray-300">
-                    @for($score = 1; $score <= 5; $score++)
-                    <div class="flex-1 flex flex-col items-center justify-end px-2">
-                        <div class="flex flex-wrap justify-center gap-2 mb-2">
-                            @foreach($data['distribution'][$score] as $user)
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:scale-110 transition user-icon overflow-hidden border-2" 
-                                 style="background-color: {{ $user['color'] }}; border-color: {{ $user['color'] }};"
-                                 data-name="{{ $user['name'] }}"
-                                 data-comment="{{ $user['comment'] ?? 'コメントなし' }}">
-                                @if($user['icon'] && !preg_match('/[\x{1F300}-\x{1F9FF}]/u', $user['icon']))
-                                    <img src="{{ asset('storage/' . $user['icon']) }}" alt="{{ $user['name'] }}" class="w-full h-full object-cover">
-                                @else
-                                    {{ $user['icon'] ?? substr($user['name'], 0, 1) }}
-                                @endif
+
+                <div class="overflow-y-auto max-h-[600px]">
+                    @foreach($distributionData as $index => $data)
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-medium">{{ $data['question'] }}</h3>
+                            <div class="text-sm text-gray-600">
+                                <span class="mr-4">平均: <span class="font-semibold">{{ number_format($data['mean'], 2) }}</span></span>
+                                <span>標準偏差: <span class="font-semibold {{ $data['stdDev'] > 1.5 ? 'text-red-600' : ($data['stdDev'] > 1.0 ? 'text-orange-600' : 'text-green-600') }}">{{ number_format($data['stdDev'], 2) }}</span></span>
                             </div>
-                            @endforeach
                         </div>
-                        <div class="text-center font-semibold">{{ $score }}</div>
+                        <div class="flex justify-between items-end h-48 border-b border-gray-300">
+                            @for($score = 1; $score <= 5; $score++)
+                            <div class="flex-1 flex flex-col items-center justify-end px-2">
+                                <div class="flex flex-wrap justify-center gap-2 mb-2">
+                                    @foreach($data['distribution'][$score] as $user)
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:scale-110 transition user-icon overflow-hidden border-2" 
+                                         style="background-color: {{ $user['color'] }}; border-color: {{ $user['color'] }};"
+                                         data-name="{{ $user['name'] }}"
+                                         data-comment="{{ $user['comment'] ?? 'コメントなし' }}">
+                                        @if($user['icon'] && !preg_match('/[\x{1F300}-\x{1F9FF}]/u', $user['icon']))
+                                            <img src="{{ asset('storage/' . $user['icon']) }}" alt="{{ $user['name'] }}" class="w-full h-full object-cover">
+                                        @else
+                                            {{ $user['icon'] ?? substr($user['name'], 0, 1) }}
+                                        @endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div class="text-center font-semibold">{{ $score }}</div>
+                            </div>
+                            @endfor
+                        </div>
                     </div>
-                    @endfor
+                    @endforeach
                 </div>
             </div>
-            @endforeach
         </div>
     </div>
             </div>
         </div>
 
         <!-- 改善案入力画面 -->
-        <div id="improvementView" class="absolute inset-0 transition-transform duration-500 ease-in-out transform translate-x-full overflow-y-auto">
+        <div id="improvementView" class="absolute inset-0 transition-transform duration-500 ease-in-out transform translate-x-full bg-gray-100">
             <!-- 左矢印ボタン -->
-            <button onclick="switchView('dashboard')" class="fixed left-4 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg z-10 transition">
+            <button onclick="switchView('dashboard')" class="fixed left-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white p-4 rounded-full shadow-lg z-10 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </button>
             
-            <div class="container mx-auto px-4 pt-20 pb-8">
-                <!-- 改善案入力フォーム -->
-                <div class="bg-white rounded-lg shadow-md p-8 max-w-4xl mx-auto mb-8" id="improvementForm">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-bold text-gray-800">第{{ $currentWeek }}週の改善案を入力</h2>
-                        <button type="button" onclick="toggleForm()" id="toggleFormBtn" class="text-blue-500 hover:text-blue-600 font-semibold">
-                            閉じる
+            <div class="h-full flex flex-col">
+                <!-- ヘッダー部分 -->
+                <div class="bg-white shadow-sm px-4 py-4">
+                    <div class="container mx-auto flex justify-between items-center">
+                        <img src="{{ asset('img/logo-retune.jpg') }}" alt="Retune" class="w-[232px] h-[66px] object-contain">
+                        <button onclick="toggleImprovementForm()" class="bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold py-2 px-6 rounded-[10px] transition">
+                            新しい改善案を入力
                         </button>
                     </div>
-                    
-                    <form action="{{ route('improvement.store') }}" method="POST" class="space-y-6" id="improvementFormContent">
+                </div>
+
+                <!-- コンテンツ部分 -->
+                <div class="flex-1 overflow-y-auto">
+                    <div class="container mx-auto px-4 py-8">
+                        <!-- 週選択 -->
+                        <div class="bg-white rounded-[10px] shadow-lg p-6 mb-8">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-xl font-semibold">週の選択</h2>
+                                <div class="flex items-center gap-4">
+                                    <a href="?view=improvement&week={{ max(1, $currentWeek - 1) }}" 
+                                       class="px-4 py-2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold rounded-[10px] transition {{ $currentWeek <= 1 ? 'opacity-50 pointer-events-none' : '' }}">
+                                        ← 前の週
+                                    </a>
+                                    <div class="flex gap-2">
+                                        @php
+                                            $improvementWeeks = $improvements->pluck('week_number')->unique()->sort()->values()->toArray();
+                                            $maxWeek = max(array_merge($improvementWeeks, [$currentWeek]));
+                                        @endphp
+                                        @foreach(range(1, min($maxWeek + 2, 10)) as $week)
+                                        <a href="?view=improvement&week={{ $week }}" 
+                                           class="px-4 py-2 rounded-[10px] transition {{ $week == $currentWeek ? 'bg-gradient-to-r from-[#8060FF] to-[#30E0C0] text-white font-semibold' : (in_array($week, $improvementWeeks) ? 'bg-gray-100 hover:bg-gray-200 text-[#6C6C6C]' : 'bg-gray-50 hover:bg-gray-100 text-gray-400') }}">
+                                            第{{ $week }}週
+                                        </a>
+                                        @endforeach
+                                    </div>
+                                    <a href="?view=improvement&week={{ $currentWeek + 1 }}" 
+                                       class="px-4 py-2 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold rounded-[10px] transition">
+                                        次の週 →
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <span class="text-2xl font-bold bg-gradient-to-r from-[#8060FF] to-[#30E0C0] bg-clip-text text-transparent">第{{ $currentWeek }}週</span>
+                                @if(in_array($currentWeek, $improvementWeeks))
+                                <span class="ml-2 text-sm text-green-600">✓ 入力済み</span>
+                                @else
+                                <span class="ml-2 text-sm text-gray-400">未入力</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- 4象限表示 -->
+                        @if($improvement && ($improvement->problem || $improvement->cause || $improvement->solution || $improvement->todo))
+                        <div class="grid grid-cols-2 gap-4 h-[calc(100vh-350px)]">
+                            <!-- 左上: 問題点 -->
+                            <div class="bg-white rounded-[10px] shadow-lg p-6 overflow-y-auto">
+                                <h3 class="text-xl font-bold text-[#232323] mb-4 pb-2 border-b-2 border-[#8060FF]">問題点</h3>
+                                <p class="text-[#6C6C6C] whitespace-pre-wrap">{{ $improvement->problem ?? '未入力' }}</p>
+                            </div>
+
+                            <!-- 右上: 原因 -->
+                            <div class="bg-white rounded-[10px] shadow-lg p-6 overflow-y-auto">
+                                <h3 class="text-xl font-bold text-[#232323] mb-4 pb-2 border-b-2 border-[#30E0C0]">原因</h3>
+                                <p class="text-[#6C6C6C] whitespace-pre-wrap">{{ $improvement->cause ?? '未入力' }}</p>
+                            </div>
+
+                            <!-- 左下: 改善方策 -->
+                            <div class="bg-white rounded-[10px] shadow-lg p-6 overflow-y-auto">
+                                <h3 class="text-xl font-bold text-[#232323] mb-4 pb-2 border-b-2 border-[#8060FF]">改善方策</h3>
+                                <p class="text-[#6C6C6C] whitespace-pre-wrap">{{ $improvement->solution ?? '未入力' }}</p>
+                            </div>
+
+                            <!-- 右下: ToDo -->
+                            <div class="bg-white rounded-[10px] shadow-lg p-6 overflow-y-auto">
+                                <h3 class="text-xl font-bold text-[#232323] mb-4 pb-2 border-b-2 border-[#30E0C0]">ToDo</h3>
+                                <p class="text-[#6C6C6C] whitespace-pre-wrap">{{ $improvement->todo ?? '未入力' }}</p>
+                            </div>
+                        </div>
+                        @else
+                        <div class="flex items-center justify-center h-[calc(100vh-350px)]">
+                            <div class="text-center bg-white rounded-[10px] shadow-lg p-12">
+                                <p class="text-[#9A9A9A] text-xl mb-4">第{{ $currentWeek }}週の改善案がまだ入力されていません</p>
+                                <button onclick="toggleImprovementForm()" class="bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-semibold py-3 px-8 rounded-[10px] transition">
+                                    改善案を入力する
+                                </button>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- 入力フォームモーダル -->
+            <div id="improvementFormModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+                <div class="bg-white rounded-[10px] shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-[10px]">
+                        <h2 class="text-2xl font-semibold">第{{ $currentWeek }}週の改善案を入力</h2>
+                        <button onclick="closeImprovementForm()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <form action="{{ route('improvement.store') }}" method="POST" class="p-6">
                         @csrf
                         <input type="hidden" name="team_id" value="{{ auth()->user()->team_id }}">
                         <input type="hidden" name="week_number" value="{{ $currentWeek }}">
 
-                        <!-- 問題点 -->
-                        <div>
-                            <label class="block text-lg font-semibold text-gray-700 mb-2">
-                                問題点
-                            </label>
-                            <textarea 
-                                name="problem" 
-                                rows="3" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="チームが抱えている問題点を記入してください">{{ $improvement->problem ?? '' }}</textarea>
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- 問題点 -->
+                            <div>
+                                <label class="block text-lg font-semibold text-gray-700 mb-2">問題点</label>
+                                <textarea name="problem" rows="10" class="w-full px-4 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none" placeholder="チームが抱えている問題点を記入してください">{{ $improvement->problem ?? '' }}</textarea>
+                            </div>
+
+                            <!-- 原因 -->
+                            <div>
+                                <label class="block text-lg font-semibold text-gray-700 mb-2">原因</label>
+                                <textarea name="cause" rows="10" class="w-full px-4 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none" placeholder="問題の原因を分析して記入してください">{{ $improvement->cause ?? '' }}</textarea>
+                            </div>
+
+                            <!-- 改善方策 -->
+                            <div>
+                                <label class="block text-lg font-semibold text-gray-700 mb-2">改善方策</label>
+                                <textarea name="solution" rows="10" class="w-full px-4 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none" placeholder="具体的な改善方策を記入してください">{{ $improvement->solution ?? '' }}</textarea>
+                            </div>
+
+                            <!-- ToDo -->
+                            <div>
+                                <label class="block text-lg font-semibold text-gray-700 mb-2">ToDo</label>
+                                <textarea name="todo" rows="10" class="w-full px-4 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] focus:border-[#8060FF] focus:outline-none" placeholder="実行すべきタスクを記入してください">{{ $improvement->todo ?? '' }}</textarea>
+                            </div>
                         </div>
 
-                        <!-- 原因 -->
-                        <div>
-                            <label class="block text-lg font-semibold text-gray-700 mb-2">
-                                原因
-                            </label>
-                            <textarea 
-                                name="cause" 
-                                rows="3" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="問題の原因を分析して記入してください">{{ $improvement->cause ?? '' }}</textarea>
-                        </div>
-
-                        <!-- 改善方策 -->
-                        <div>
-                            <label class="block text-lg font-semibold text-gray-700 mb-2">
-                                改善方策
-                            </label>
-                            <textarea 
-                                name="solution" 
-                                rows="3" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="具体的な改善方策を記入してください">{{ $improvement->solution ?? '' }}</textarea>
-                        </div>
-
-                        <!-- ToDo -->
-                        <div>
-                            <label class="block text-lg font-semibold text-gray-700 mb-2">
-                                ToDo
-                            </label>
-                            <textarea 
-                                name="todo" 
-                                rows="3" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="実行すべきタスクを記入してください">{{ $improvement->todo ?? '' }}</textarea>
-                        </div>
-
-                        <div class="flex justify-end">
-                            <button 
-                                type="submit" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition">
+                        <div class="flex gap-3 pt-6">
+                            <button type="submit" class="flex-1 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-bold py-3 px-4 rounded-[10px] transition">
                                 保存
+                            </button>
+                            <button type="button" onclick="closeImprovementForm()" class="px-6 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] hover:bg-gray-50 transition text-[#6C6C6C] font-semibold">
+                                キャンセル
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <!-- 改善案カード一覧 -->
-                <div class="max-w-6xl mx-auto mt-8">
-                    
-                    @if($improvements->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach($improvements as $item)
-                        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-xl font-bold text-blue-600">第{{ $item->week_number }}週</h3>
-                                <span class="text-sm text-gray-500">{{ $item->created_at->format('Y/m/d') }}</span>
-                            </div>
-                            
-                            @if($item->problem)
-                            <div class="mb-3">
-                                <h4 class="font-semibold text-gray-700 text-sm mb-1">問題点</h4>
-                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->problem }}</p>
-                            </div>
-                            @endif
-                            
-                            @if($item->cause)
-                            <div class="mb-3">
-                                <h4 class="font-semibold text-gray-700 text-sm mb-1">原因</h4>
-                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->cause }}</p>
-                            </div>
-                            @endif
-                            
-                            @if($item->solution)
-                            <div class="mb-3">
-                                <h4 class="font-semibold text-gray-700 text-sm mb-1">改善方策</h4>
-                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->solution }}</p>
-                            </div>
-                            @endif
-                            
-                            @if($item->todo)
-                            <div>
-                                <h4 class="font-semibold text-gray-700 text-sm mb-1">ToDo</h4>
-                                <p class="text-gray-600 text-sm line-clamp-2">{{ $item->todo }}</p>
-                            </div>
-                            @endif
-                        </div>
-                        @endforeach
-                    </div>
-                    @else
-                    <div class="text-center py-12 bg-white rounded-lg shadow-md">
-                        <p class="text-gray-500 text-lg">まだ改善案が保存されていません</p>
-                    </div>
-                    @endif
                 </div>
             </div>
         </div>
@@ -303,9 +327,9 @@
     <!-- アンケートモーダル -->
     @if(count($teamMembers) > 0)
     <div id="surveyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-                <h2 class="text-2xl font-semibold">今週のアンケート (第{{ $currentWeek }}週)</h2>
+        <div class="bg-white rounded-[10px] shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-[10px]">
+                <h2 class="text-2xl font-semibold">今週のアンケート (<span class="bg-gradient-to-r from-[#8060FF] to-[#30E0C0] bg-clip-text text-transparent font-bold">第{{ $currentWeek }}週</span>)</h2>
                 <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
             <form action="{{ route('answer.store') }}" method="POST" class="p-6 space-y-6">
@@ -342,11 +366,11 @@
 
                 <div class="flex gap-3 pt-4">
                     <button type="submit" 
-                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition">
+                            class="flex-1 bg-gradient-to-r from-[#8060FF] to-[#30E0C0] hover:opacity-90 text-white font-bold py-3 px-4 rounded-[10px] transition">
                         回答を送信
                     </button>
                     <button type="button" onclick="closeModal()" 
-                            class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            class="px-6 py-3 border-[1.5px] border-[#D9D9D9] rounded-[10px] hover:bg-gray-50 transition text-[#6C6C6C] font-semibold">
                         キャンセル
                     </button>
                 </div>
@@ -380,23 +404,24 @@
             }
         }
 
-        // フォームの表示/非表示切り替え
+        // 改善案フォームの表示/非表示切り替え
         function toggleForm() {
-            const formContent = document.getElementById('improvementFormContent');
-            const toggleBtn = document.getElementById('toggleFormBtn');
-            const showFormBtnHeader = document.getElementById('showFormBtnHeader');
-            const formContainer = document.getElementById('improvementForm');
+            toggleImprovementForm();
+        }
 
-            if (formContent.style.display === 'none') {
-                formContent.style.display = 'block';
-                toggleBtn.textContent = '閉じる';
-                if (showFormBtnHeader) showFormBtnHeader.classList.add('hidden');
-                formContainer.classList.remove('hidden');
-            } else {
-                formContent.style.display = 'none';
-                toggleBtn.textContent = '開く';
-                if (showFormBtnHeader) showFormBtnHeader.classList.remove('hidden');
-                formContainer.classList.add('hidden');
+        function toggleImprovementForm() {
+            const modal = document.getElementById('improvementFormModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeImprovementForm() {
+            const modal = document.getElementById('improvementFormModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
         }
 
