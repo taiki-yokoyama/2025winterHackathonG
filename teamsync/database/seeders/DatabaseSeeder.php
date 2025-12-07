@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
 
         // Team A作成
         $team = Team::create([
-            'name' => 'Team A'
+            'name' => 'Team A',
+            'code' => '5A-2025'
         ]);
 
         // ユーザー3名作成
