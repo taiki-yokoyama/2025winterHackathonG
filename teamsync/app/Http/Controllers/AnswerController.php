@@ -9,7 +9,7 @@ class AnswerController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'user_id' => 'required|exists:users,id',
             'question_id' => 'required|exists:questions,id',
             'score' => 'required|integer|min:1|max:5',
