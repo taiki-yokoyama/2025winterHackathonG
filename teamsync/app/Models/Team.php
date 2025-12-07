@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'code'];
 
     public function users(): HasMany
     {
