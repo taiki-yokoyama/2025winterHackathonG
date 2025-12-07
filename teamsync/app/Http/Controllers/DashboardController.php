@@ -11,8 +11,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // デモ用に最初のユーザーでログインしていると仮定
-        $currentUser = User::first();
+        // 認証されたユーザーを取得
+        $currentUser = auth()->user();
         
         if (!$currentUser || !$currentUser->team_id) {
             return view('dashboard', [
@@ -42,8 +42,8 @@ class DashboardController extends Controller
 
         // 同じチームのメンバー全員（Eager Loading）
         $teamMembers = User::where('team_id', $teamId)
-            ->with(['answers' => function ($query) use ($weekNumber) {
-                $query->where('week_number', $weekNumber);
+            ->with(['answers' => function ($query) use ($currentWeek) {
+                $query->where('week_number', $currentWeek);
             }])
             ->get();
         
@@ -56,6 +56,8 @@ class DashboardController extends Controller
             foreach ($member->answers as $answer) {
                 $answersMap[$member->id][$answer->question_id] = $answer;
             }
+        }
+        
         // メンバーごとに色を割り当て
         $memberColors = [];
         foreach ($teamMembers as $index => $member) {
@@ -69,10 +71,6 @@ class DashboardController extends Controller
             $scores = [];
             foreach ($questions as $question) {
                 $answer = $answersMap[$member->id][$question->id] ?? null;
-                $answer = Answer::where('user_id', $member->id)
-                    ->where('question_id', $question->id)
-                    ->where('week_number', $currentWeek)
-                    ->first();
                 $scores[] = $answer ? $answer->score : 0;
             }
             $radarData[] = [
@@ -98,10 +96,6 @@ class DashboardController extends Controller
             
             foreach ($teamMembers as $member) {
                 $answer = $answersMap[$member->id][$question->id] ?? null;
-                $answer = Answer::where('user_id', $member->id)
-                    ->where('question_id', $question->id)
-                    ->where('week_number', $currentWeek)
-                    ->first();
                 
                 if ($answer) {
                     $distribution[$answer->score][] = [
